@@ -15,7 +15,7 @@ type VoltaSessionKeyClient interface {
 }
 
 type client struct {
-	bundlerClient *bundlerAPIClient
+	bundlerClient *BundlerAPIClient
 	clients       map[Blockchain]*ethclient.Client
 }
 
@@ -29,7 +29,7 @@ var (
 
 func NewClient() VoltaSessionKeyClient {
 	return &client{
-		bundlerClient: newBundlerAPIClient(defaultBundlerURLs),
+		bundlerClient: NewBundlerAPIClient(defaultBundlerURLs),
 		clients:       make(map[Blockchain]*ethclient.Client),
 	}
 }
@@ -69,7 +69,7 @@ func (c client) BuildUserOperation(ctx context.Context, params BuildUserOperatio
 }
 
 func (c client) SignUserOperation(op *UserOperation, key *ecdsa.PrivateKey) error {
-	return op.sign(key)
+	return op.Sign(key)
 }
 
 func (c client) SendUserOperation(ctx context.Context, op *UserOperation) (userOpHash string, err error) {
