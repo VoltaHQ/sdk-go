@@ -127,7 +127,7 @@ func (op *UserOperation) getHash(entryPoint common.Address, chainID *big.Int) (c
 	), nil
 }
 
-func (op *UserOperation) sign(key *ecdsa.PrivateKey) error {
+func (op *UserOperation) Sign(key *ecdsa.PrivateKey) error {
 	hash, err := op.getHash(common.HexToAddress(op.EntryPointAddress), op.Blockchain.ChainID())
 	if err != nil {
 		return fmt.Errorf("error getting user operation hash: %w", err)

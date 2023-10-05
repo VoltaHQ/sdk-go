@@ -22,19 +22,19 @@ type jsonrpcErrorMessage struct {
 	Message string `json:"message,omitempty"`
 }
 
-type bundlerAPIClient struct {
+type BundlerAPIClient struct {
 	urls map[Blockchain]string
 	r    *resty.Client
 }
 
-func newBundlerAPIClient(urls map[Blockchain]string) *bundlerAPIClient {
-	return &bundlerAPIClient{
+func NewBundlerAPIClient(urls map[Blockchain]string) *BundlerAPIClient {
+	return &BundlerAPIClient{
 		urls: urls,
 		r:    resty.New(),
 	}
 }
 
-func (b bundlerAPIClient) SendUserOperation(ctx context.Context, blockchain Blockchain, userOp UserOperation,
+func (b BundlerAPIClient) SendUserOperation(ctx context.Context, blockchain Blockchain, userOp UserOperation,
 	entryPoint string) (string, error) {
 
 	params := []any{userOp, entryPoint}
@@ -54,7 +54,7 @@ type estimateUserOperationGasResult struct {
 	CallGasLimit       string `json:"CallGasLimit"`
 }
 
-func (b bundlerAPIClient) EstimateUserOperationGas(ctx context.Context, blockchain Blockchain,
+func (b BundlerAPIClient) EstimateUserOperationGas(ctx context.Context, blockchain Blockchain,
 	userOperation UserOperation, entryPoint string) (preVerificationGas, verificationGas, callGasLimit *big.Int, err error) {
 
 	params := []any{userOperation, entryPoint}
@@ -86,7 +86,7 @@ func (b bundlerAPIClient) EstimateUserOperationGas(ctx context.Context, blockcha
 	return preVerificationGas, verificationGas, callGasLimit, nil
 }
 
-func (b bundlerAPIClient) doJSONRPCRequest(ctx context.Context, blockchain Blockchain, method string,
+func (b BundlerAPIClient) doJSONRPCRequest(ctx context.Context, blockchain Blockchain, method string,
 	params interface{}) (jsonrpcMessage, error) {
 
 	url, ok := b.urls[blockchain]
