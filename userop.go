@@ -45,7 +45,7 @@ type UserOperation struct {
 	PreVerificationGas   *big.Int `json:"preVerificationGas,omitempty"`   // Gas allocated for other overhead in handleOps (and fee paid to bundler?)
 	MaxFeePerGas         *big.Int `json:"maxFeePerGas,omitempty"`
 	MaxPriorityFeePerGas *big.Int `json:"maxPriorityFeePerGas,omitempty"`
-	PaymasterAndData     string   `json:"paymasterAndDataa,omitempty"`
+	PaymasterAndData     string   `json:"paymasterAndData,omitempty"`
 	Signature            string   `json:"signature,omitempty"`
 	// These fields are not serialized in the UserOp, but are used to generate the UserOpHash.
 	EntryPointAddress string     `json:"-"`
