@@ -19,6 +19,7 @@ type jsonrpcMessage struct {
 
 type jsonrpcErrorMessage struct {
 	Code    int    `json:"code,omitempty"`
+	Data    string `json:"data,omitempty"`
 	Message string `json:"message,omitempty"`
 }
 
@@ -84,6 +85,18 @@ func (b BundlerAPIClient) EstimateUserOperationGas(ctx context.Context, blockcha
 	}
 
 	return preVerificationGas, verificationGas, callGasLimit, nil
+}
+
+func (b BundlerAPIClient) GetUserOperationReceipt(ctx context.Context, blockchain Blockchain,
+	userOpHash string) (out GetUserOperationReceiptResponse, err error) {
+	params := []any{userOpHash}
+
+	response, err := b.doJSONRPCRequest(ctx, blockchain, "eth_getUserOperationReceipt", params)
+	if err != nil {
+		return out, err
+	}
+
+	return out, json.Unmarshal(response.Result, &out)
 }
 
 func (b BundlerAPIClient) doJSONRPCRequest(ctx context.Context, blockchain Blockchain, method string,
