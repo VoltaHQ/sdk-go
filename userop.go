@@ -101,7 +101,7 @@ func (op *UserOperation) packForSignature() ([]byte, error) {
 		{Name: "hashPaymasterAndData", Type: bytes32},
 	}
 	return args.Pack(
-		op.Sender,
+		common.HexToAddress(op.Sender),
 		op.Nonce,
 		crypto.Keccak256Hash(hexutil.MustDecode(op.InitCode)),
 		crypto.Keccak256Hash(hexutil.MustDecode(op.CallData)),
