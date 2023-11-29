@@ -11,6 +11,7 @@ type Log struct {
 	LogIndex         string   `json:"logIndex"`
 	Removed          bool     `json:"removed"`
 }
+
 type Receipt struct {
 	BlockHash         string `json:"blockHash"`
 	BlockNumber       string `json:"blockNumber"`

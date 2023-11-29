@@ -3,19 +3,21 @@ package voltasdk
 import "C"
 import (
 	"context"
-	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"github.com/NuKeyHQ/sdk-go/contracts/EntryPoint"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
 )
 
 type VaultClient interface {
-	NextNonce(sender common.Address) (*big.Int, error)
 	BuildExecuteUserOp(ctx context.Context, params BuildExecuteUserOpParams) (*UserOperation, error)
-	SignUserOp(userOp *UserOperation, keys ...*ecdsa.PrivateKey) error
+	BuildExecuteUserOpFromTx(ctx context.Context, vault common.Address, tx *types.Transaction) (*UserOperation, error)
+	NextNonce(sender common.Address) (*big.Int, error)
+	SuggestUserOpGasPrice(ctx context.Context, userOp *UserOperation) error
 }
 
 func NewVaultClient(chain Blockchain) (VaultClient, error) {
@@ -49,6 +51,35 @@ func newVaultClient(chain Blockchain) (*vaultClient, error) {
 	}, nil
 }
 
+func (c vaultClient) BuildExecuteUserOp(ctx context.Context, params BuildExecuteUserOpParams) (*UserOperation, error) {
+	callData, err := accountABI.Pack("execute", params.To, params.Value, params.CallData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to pack execute call: %w", err)
+	}
+
+	userOp := newUserOp(params.Sender, big.NewInt(0))
+	userOp.CallData = callData
+	userOp.Blockchain = c.chain
+	userOp.EntryPointAddress = defaultEVMEntryPointAddress
+
+	return userOp, nil
+}
+
+func (c vaultClient) BuildExecuteUserOpFromTx(ctx context.Context, vault common.Address, tx *types.Transaction) (*UserOperation, error) {
+	if tx.To() == nil {
+		return nil, errors.New("tx must have a recipient")
+	}
+
+	return c.BuildExecuteUserOp(ctx, BuildExecuteUserOpParams{
+		BaseUserOpParams: BaseUserOpParams{
+			Sender: vault,
+		},
+		To:       *tx.To(),
+		Value:    tx.Value(),
+		CallData: tx.Data(),
+	})
+}
+
 func (c vaultClient) NextNonce(sender common.Address) (*big.Int, error) {
 	nonce, err := c.entryPoint.GetNonce(
 		&bind.CallOpts{},
@@ -61,50 +92,21 @@ func (c vaultClient) NextNonce(sender common.Address) (*big.Int, error) {
 	return nonce, nil
 }
 
-func (c vaultClient) BuildExecuteUserOp(ctx context.Context, params BuildExecuteUserOpParams) (*UserOperation, error) {
-	nonce, err := c.NextNonce(params.Sender)
-	if err != nil {
-		return nil, err
-	}
-
-	maxFeePerGas, maxPriorityFeePerGas, err := c.getLatestGasValues(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	callData, err := accountABI.Pack("execute", params.To, params.Value, params.CallData)
-	if err != nil {
-		return nil, fmt.Errorf("failed to pack execute call: %w", err)
-	}
-
-	userOp := newUserOp()
-	userOp.Sender = params.Sender
-	userOp.Nonce = nonce
-	userOp.CallData = callData
-	userOp.Blockchain = c.chain
-	userOp.EntryPointAddress = defaultEVMEntryPointAddress
-	userOp.MaxPriorityFeePerGas = maxPriorityFeePerGas
-	userOp.MaxFeePerGas = maxFeePerGas
-
-	return userOp, nil
-}
-
-func (c vaultClient) getLatestGasValues(ctx context.Context) (maxFeePerGas, maxPriorityFeePerGas *big.Int, err error) {
+func (c vaultClient) SuggestUserOpGasPrice(ctx context.Context, userOp *UserOperation) error {
 	gasTipCap, err := c.ethClient.SuggestGasTipCap(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get gas tip cap: %w", err)
+		return fmt.Errorf("failed to get gas tip cap: %w", err)
 	}
 	if gasTipCap.Cmp(big.NewInt(0)) == 0 {
 		gasTipCap = big.NewInt(1)
 	}
 	lastBlock, err := c.ethClient.BlockByNumber(ctx, nil)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get last block: %w", err)
+		return fmt.Errorf("failed to get last block: %w", err)
 	}
 
-	return new(big.Int).Add(gasTipCap, lastBlock.BaseFee()), gasTipCap, nil
-}
+	userOp.MaxPriorityFeePerGas = gasTipCap
+	userOp.MaxFeePerGas = big.NewInt(0).Add(gasTipCap, lastBlock.BaseFee())
 
-func (c vaultClient) SignUserOp(op *UserOperation, keys ...*ecdsa.PrivateKey) error {
-	return op.Sign(keys...)
+	return nil
 }

@@ -53,9 +53,10 @@ type UserOperation struct {
 	Blockchain        Blockchain
 }
 
-func newUserOp() *UserOperation {
+func newUserOp(sender common.Address, nonce *big.Int) *UserOperation {
 	return &UserOperation{
-		Nonce:                big.NewInt(0),
+		Sender:               sender,
+		Nonce:                nonce,
 		CallGasLimit:         big.NewInt(0),
 		VerificationGasLimit: big.NewInt(0),
 		PreVerificationGas:   big.NewInt(0),
