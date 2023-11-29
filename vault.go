@@ -1,6 +1,5 @@
 package voltasdk
 
-import "C"
 import (
 	"context"
 	"errors"
