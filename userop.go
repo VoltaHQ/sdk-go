@@ -2,6 +2,7 @@ package voltasdk
 
 import (
 	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -36,20 +37,59 @@ var (
 
 // UserOperation is the struct that represents an ERC-4337 UserOp. All string fields are hex-encoded.
 type UserOperation struct {
-	Sender               string   `json:"sender,omitempty"`
-	Nonce                *big.Int `json:"nonce,omitempty"`    // Comes from the EntryPoint contract
-	InitCode             string   `json:"initCode,omitempty"` // This is for creating a new wallet. SDK will not support this yet.
-	CallData             string   `json:"callData,omitempty"`
-	CallGasLimit         *big.Int `json:"callGasLimit,omitempty"`         // Gas allocated for execution step in handleOps
-	VerificationGasLimit *big.Int `json:"verificationGasLimit,omitempty"` // Gas allocated for verification step in handleOps
-	PreVerificationGas   *big.Int `json:"preVerificationGas,omitempty"`   // Gas allocated for other overhead in handleOps (and fee paid to bundler?)
-	MaxFeePerGas         *big.Int `json:"maxFeePerGas,omitempty"`
-	MaxPriorityFeePerGas *big.Int `json:"maxPriorityFeePerGas,omitempty"`
-	PaymasterAndData     string   `json:"paymasterAndData,omitempty"`
-	Signature            string   `json:"signature,omitempty"`
+	Sender               common.Address
+	Nonce                *big.Int // Comes from the EntryPoint contract
+	InitCode             []byte   // This is for creating a new wallet. SDK will not support this yet.
+	CallData             []byte
+	CallGasLimit         *big.Int // Gas allocated for execution step in handleOps
+	VerificationGasLimit *big.Int // Gas allocated for verification step in handleOps
+	PreVerificationGas   *big.Int // Gas allocated for other overhead in handleOps (and fee paid to bundler?)
+	MaxFeePerGas         *big.Int
+	MaxPriorityFeePerGas *big.Int
+	PaymasterAndData     []byte
+	Signature            []byte
 	// These fields are not serialized in the UserOp, but are used to generate the UserOpHash.
-	EntryPointAddress string     `json:"-"`
-	Blockchain        Blockchain `json:"-"`
+	EntryPointAddress common.Address
+	Blockchain        Blockchain
+}
+
+func newUserOp() *UserOperation {
+	return &UserOperation{
+		Nonce:                big.NewInt(0),
+		CallGasLimit:         big.NewInt(0),
+		VerificationGasLimit: big.NewInt(0),
+		PreVerificationGas:   big.NewInt(0),
+		MaxFeePerGas:         big.NewInt(0),
+		MaxPriorityFeePerGas: big.NewInt(0),
+	}
+}
+
+func (op *UserOperation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Sender               string `json:"sender"`
+		Nonce                uint64 `json:"nonce"`
+		InitCode             string `json:"initCode"`
+		CallData             string `json:"callData"`
+		CallGasLimit         uint64 `json:"callGasLimit"`
+		VerificationGasLimit uint64 `json:"verificationGasLimit"`
+		PreVerificationGas   uint64 `json:"preVerificationGas"`
+		MaxFeePerGas         uint64 `json:"maxFeePerGas"`
+		MaxPriorityFeePerGas uint64 `json:"maxPriorityFeePerGas"`
+		PaymasterAndData     string `json:"paymasterAndData"`
+		Signature            string `json:"signature"`
+	}{
+		Sender:               op.Sender.Hex(),
+		Nonce:                op.Nonce.Uint64(),
+		InitCode:             hexutil.Encode(op.InitCode),
+		CallData:             hexutil.Encode(op.CallData),
+		CallGasLimit:         op.CallGasLimit.Uint64(),
+		VerificationGasLimit: op.VerificationGasLimit.Uint64(),
+		PreVerificationGas:   op.PreVerificationGas.Uint64(),
+		MaxFeePerGas:         op.MaxFeePerGas.Uint64(),
+		MaxPriorityFeePerGas: op.MaxPriorityFeePerGas.Uint64(),
+		PaymasterAndData:     hexutil.Encode(op.PaymasterAndData),
+		Signature:            hexutil.Encode(op.Signature),
+	})
 }
 
 func (op *UserOperation) pack() ([]byte, error) {
@@ -69,17 +109,17 @@ func (op *UserOperation) pack() ([]byte, error) {
 		PaymasterAndData     []byte
 		Signature            []byte
 	}{
-		common.HexToAddress(op.Sender),
+		op.Sender,
 		op.Nonce,
-		hexutil.MustDecode(op.InitCode),
-		hexutil.MustDecode(op.CallData),
+		op.InitCode,
+		op.CallData,
 		op.CallGasLimit,
 		op.VerificationGasLimit,
 		op.PreVerificationGas,
 		op.MaxFeePerGas,
 		op.MaxPriorityFeePerGas,
-		hexutil.MustDecode(op.PaymasterAndData),
-		hexutil.MustDecode(op.Signature),
+		op.PaymasterAndData,
+		op.Signature,
 	})
 
 	enc := hexutil.Encode(packed)
@@ -100,21 +140,22 @@ func (op *UserOperation) packForSignature() ([]byte, error) {
 		{Name: "maxPriorityFeePerGas", Type: uint256},
 		{Name: "hashPaymasterAndData", Type: bytes32},
 	}
+	// TODO: check values, args.Pack panics if any are nil
 	return args.Pack(
-		common.HexToAddress(op.Sender),
+		op.Sender,
 		op.Nonce,
-		crypto.Keccak256Hash(hexutil.MustDecode(op.InitCode)),
-		crypto.Keccak256Hash(hexutil.MustDecode(op.CallData)),
+		crypto.Keccak256Hash(op.InitCode),
+		crypto.Keccak256Hash(op.CallData),
 		op.CallGasLimit,
 		op.VerificationGasLimit,
 		op.PreVerificationGas,
 		op.MaxFeePerGas,
 		op.MaxPriorityFeePerGas,
-		crypto.Keccak256Hash(hexutil.MustDecode(op.PaymasterAndData)),
+		crypto.Keccak256Hash(op.PaymasterAndData),
 	)
 }
 
-func (op *UserOperation) getHash(entryPoint common.Address, chainID *big.Int) (common.Hash, error) {
+func (op *UserOperation) getHash() (common.Hash, error) {
 	packed, err := op.packForSignature()
 	if err != nil {
 		return common.Hash{}, err
@@ -122,23 +163,27 @@ func (op *UserOperation) getHash(entryPoint common.Address, chainID *big.Int) (c
 
 	return crypto.Keccak256Hash(
 		crypto.Keccak256(packed),
-		common.LeftPadBytes(entryPoint.Bytes(), 32),
-		common.LeftPadBytes(chainID.Bytes(), 32),
+		common.LeftPadBytes(op.EntryPointAddress.Bytes(), 32),
+		common.LeftPadBytes(op.Blockchain.ChainID().Bytes(), 32),
 	), nil
 }
 
-func (op *UserOperation) Sign(key *ecdsa.PrivateKey) error {
-	hash, err := op.getHash(common.HexToAddress(op.EntryPointAddress), op.Blockchain.ChainID())
+func (op *UserOperation) Sign(keys ...*ecdsa.PrivateKey) error {
+	hash, err := op.getHash()
 	if err != nil {
 		return fmt.Errorf("error getting user operation hash: %w", err)
 	}
 
 	digest := crypto.Keccak256Hash([]byte("\x19Ethereum Signed Message:\n32"), hash.Bytes())
-	sig, err := crypto.Sign(digest.Bytes(), key)
-	if err != nil {
-		return fmt.Errorf("error signing user operation: %w", err)
+
+	var sig []byte
+	for _, key := range keys {
+		sig, err = crypto.Sign(digest.Bytes(), key)
+		if err != nil {
+			return fmt.Errorf("error signing user operation: %w", err)
+		}
+		op.Signature = append(op.Signature, sig...)
 	}
 
-	op.Signature = hexutil.Encode(sig)
 	return nil
 }

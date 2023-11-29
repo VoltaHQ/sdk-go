@@ -24,7 +24,7 @@ type Receipt struct {
 	Logs              []Log  `json:"logs"`
 }
 
-type GetUserOperationReceiptResponse struct {
+type GetUserOpReceiptResponse struct {
 	UserOpHash    string  `json:"userOpHash"`
 	Sender        string  `json:"sender"`
 	Paymaster     string  `json:"paymaster"`
