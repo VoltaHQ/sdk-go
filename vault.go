@@ -34,7 +34,7 @@ func newVaultClient(chain Blockchain) (*vaultClient, error) {
 		return nil, ErrInvalidBlockchain
 	}
 
-	ethClient, err := ethclient.DialContext(context.Background(), chain.NodeRPCURL())
+	ethClient, err := ethclient.DialContext(context.Background(), chain.BundlerURL())
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial node: %w", err)
 	}

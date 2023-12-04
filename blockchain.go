@@ -19,13 +19,8 @@ var (
 	}
 
 	bundlerURLs = map[Blockchain]string{
-		BlockchainPolygonMumbai: "https://api-bundler.dev.nukey.fi/",
-	}
-
-	// Note: once we deploy bundlers with RPC forwarding, we can get rid of this
-	// and simply use the bundler URL
-	nodeRPCURLs = map[Blockchain]string{
-		BlockchainPolygonMumbai: "put_node_rpc_url_here",
+		BlockchainAvalancheMainnet: "http://localhost:4337/avalanche_mainnet",
+		BlockchainPolygonMumbai:    "https://api-bundler.dev.nukey.fi/",
 	}
 
 	defaultEVMEntryPointAddress = common.HexToAddress("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789")
@@ -45,13 +40,6 @@ func (b Blockchain) BundlerURL() string {
 	return ""
 }
 
-func (b Blockchain) NodeRPCURL() string {
-	if url, ok := nodeRPCURLs[b]; ok {
-		return url
-	}
-	return ""
-}
-
 func (b Blockchain) IsValid() bool {
-	return b.ChainID() != nil && b.BundlerURL() != "" && b.NodeRPCURL() != ""
+	return b.ChainID() != nil && b.BundlerURL() != ""
 }

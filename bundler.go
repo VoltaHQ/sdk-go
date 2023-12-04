@@ -90,7 +90,7 @@ type jsonrpcMessage struct {
 
 type jsonrpcErrorMessage struct {
 	Code    int    `json:"code,omitempty"`
-	Data    string `json:"data,omitempty"`
+	Data    any    `json:"data,omitempty"`
 	Message string `json:"message,omitempty"`
 }
 
