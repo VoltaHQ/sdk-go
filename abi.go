@@ -1,7 +1,7 @@
 package voltasdk
 
 import (
-	volta "github.com/NuKeyHQ/sdk-go/contracts/voltaaccount"
+	"github.com/NuKeyHQ/sdk-go/contracts/VoltaAccount"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"strings"
 )
@@ -12,7 +12,7 @@ var (
 
 func init() {
 	var err error
-	accountABI, err = abi.JSON(strings.NewReader(volta.VoltaMetaData.ABI))
+	accountABI, err = abi.JSON(strings.NewReader(account.VoltaAccountMetaData.ABI))
 	if err != nil {
 		panic("failed to parse volta account abi: " + err.Error())
 	}

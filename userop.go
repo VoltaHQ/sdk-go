@@ -21,7 +21,7 @@ var (
 		{Name: "sender", InternalType: "Sender", Type: "address"},
 		{Name: "nonce", InternalType: "Nonce", Type: "uint256"},
 		{Name: "initCode", InternalType: "InitCode", Type: "bytes"},
-		{Name: "callData", InternalType: "CallData", Type: "bytes"},
+		{Name: "callData", InternalType: "Data", Type: "bytes"},
 		{Name: "callGasLimit", InternalType: "CallGasLimit", Type: "uint256"},
 		{Name: "verificationGasLimit", InternalType: "VerificationGasLimit", Type: "uint256"},
 		{Name: "preVerificationGas", InternalType: "PreVerificationGas", Type: "uint256"},
