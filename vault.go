@@ -16,6 +16,7 @@ type VaultClient interface {
 	BuildExecuteUserOp(vault common.Address, call Call) (*UserOperation, error)
 	BuildExecuteUserOpFromTx(vault common.Address, tx *types.Transaction) (*UserOperation, error)
 	BuildExecuteBatchUserOp(vault common.Address, calls []Call) (*UserOperation, error)
+	BuildCustomUserOp(vault common.Address, callData []byte) (*UserOperation, error)
 	NextNonce(sender common.Address) (*big.Int, error)
 	SuggestUserOpGasPrice(ctx context.Context, userOp *UserOperation) error
 }
@@ -84,6 +85,15 @@ func (c vaultClient) BuildExecuteBatchUserOp(sender common.Address, calls []Call
 	}
 
 	userOp := newUserOp(sender, big.NewInt(0))
+	userOp.CallData = callData
+	userOp.Blockchain = c.chain
+	userOp.EntryPointAddress = defaultEVMEntryPointAddress
+
+	return userOp, nil
+}
+
+func (c vaultClient) BuildCustomUserOp(vault common.Address, callData []byte) (*UserOperation, error) {
+	userOp := newUserOp(vault, big.NewInt(0))
 	userOp.CallData = callData
 	userOp.Blockchain = c.chain
 	userOp.EntryPointAddress = defaultEVMEntryPointAddress
