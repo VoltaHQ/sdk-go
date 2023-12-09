@@ -18,6 +18,12 @@ func NewBundlerClient(chain Blockchain) (BundlerClient, error) {
 	return newBundlerClient(chain)
 }
 
+func NewBundlerClientWithUrl(bundlerUrl string) BundlerClient {
+	return &bundlerClient{
+		r: resty.New().SetBaseURL(bundlerUrl),
+	}
+}
+
 type bundlerClient struct {
 	r *resty.Client
 }
