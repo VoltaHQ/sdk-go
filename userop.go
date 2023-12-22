@@ -156,7 +156,7 @@ func (op *UserOperation) packForSignature() ([]byte, error) {
 	)
 }
 
-func (op *UserOperation) getHash() (common.Hash, error) {
+func (op *UserOperation) GetOpHash() (common.Hash, error) {
 	packed, err := op.packForSignature()
 	if err != nil {
 		return common.Hash{}, err
@@ -169,13 +169,19 @@ func (op *UserOperation) getHash() (common.Hash, error) {
 	), nil
 }
 
-func (op *UserOperation) Sign(keys ...*ecdsa.PrivateKey) error {
-	hash, err := op.getHash()
+func (op *UserOperation) GetDigest() (common.Hash, error) {
+	hash, err := op.GetOpHash()
 	if err != nil {
-		return fmt.Errorf("error getting user operation hash: %w", err)
+		return common.Hash{}, err
 	}
+	return crypto.Keccak256Hash([]byte("\x19Ethereum Signed Message:\n32"), hash.Bytes()), nil
+}
 
-	digest := crypto.Keccak256Hash([]byte("\x19Ethereum Signed Message:\n32"), hash.Bytes())
+func (op *UserOperation) Sign(keys ...*ecdsa.PrivateKey) error {
+	digest, err := op.GetDigest()
+	if err != nil {
+		return fmt.Errorf("error getting digest: %w", err)
+	}
 
 	var sig []byte
 	for _, key := range keys {
