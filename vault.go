@@ -16,6 +16,8 @@ type VaultClient interface {
 	BuildExecuteUserOp(vault common.Address, call Call) (*UserOperation, error)
 	BuildExecuteUserOpFromTx(vault common.Address, tx *types.Transaction) (*UserOperation, error)
 	BuildExecuteBatchUserOp(vault common.Address, calls []Call) (*UserOperation, error)
+	BuildEnableBatchUserOp(vault common.Address, enableCalls []UserCallData) (*UserOperation, error)
+	BuildDisableBatchUserOp(vault common.Address, disableCalls []UserCallData) (*UserOperation, error)
 	BuildCustomUserOp(vault common.Address, callData []byte) (*UserOperation, error)
 	NextNonce(sender common.Address) (*big.Int, error)
 	SuggestUserOpGasPrice(ctx context.Context, userOp *UserOperation) error
@@ -97,6 +99,34 @@ func (c vaultClient) BuildExecuteBatchUserOp(sender common.Address, calls []Call
 	userOp := newUserOp(sender, big.NewInt(0))
 	userOp.CallData = callData
 	userOp.ChainID = c.chainId
+	userOp.EntryPointAddress = defaultEVMEntryPointAddress
+
+	return userOp, nil
+}
+
+func (c vaultClient) BuildEnableBatchUserOp(sender common.Address, enableCalls []UserCallData) (*UserOperation, error) {
+	callData, err := accountABI.Pack("enableBatch", enableCalls)
+	if err != nil {
+		return nil, fmt.Errorf("failed to pack enableBatch call: %w", err)
+	}
+
+	userOp := newUserOp(sender, big.NewInt(0))
+	userOp.CallData = callData
+	userOp.Blockchain = c.chain
+	userOp.EntryPointAddress = defaultEVMEntryPointAddress
+
+	return userOp, nil
+}
+
+func (c vaultClient) BuildDisableBatchUserOp(sender common.Address, disableCalls []UserCallData) (*UserOperation, error) {
+	callData, err := accountABI.Pack("disableBatch", disableCalls)
+	if err != nil {
+		return nil, fmt.Errorf("failed to pack disableBatch call: %w", err)
+	}
+
+	userOp := newUserOp(sender, big.NewInt(0))
+	userOp.CallData = callData
+	userOp.Blockchain = c.chain
 	userOp.EntryPointAddress = defaultEVMEntryPointAddress
 
 	return userOp, nil

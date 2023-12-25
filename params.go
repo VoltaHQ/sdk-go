@@ -15,4 +15,9 @@ type Call struct {
 	Data []byte
 }
 
+type UserCallData struct {
+	// Data is the data to send with the call
+	Data []byte
+}
+
 var ErrInvalidBlockchain = errors.New("invalid blockchain")

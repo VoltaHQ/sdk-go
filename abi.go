@@ -12,7 +12,7 @@ var (
 
 func init() {
 	var err error
-	accountABI, err = abi.JSON(strings.NewReader(account.VoltaAccountMetaData.ABI))
+	accountABI, err = abi.JSON(strings.NewReader(account.AccountMetaData.ABI))
 	if err != nil {
 		panic("failed to parse volta account abi: " + err.Error())
 	}

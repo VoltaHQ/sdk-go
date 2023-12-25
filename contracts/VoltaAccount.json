@@ -51,5 +51,45 @@
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "type": "function",
+      "name": "enableBatch",
+      "inputs": [
+        {
+          "name": "_data",
+          "type": "tuple[]",
+          "internalType": "struct UserCallData[]",
+          "components": [
+            {
+              "name": "data",
+              "type": "bytes",
+              "internalType": "bytes"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "disableBatch",
+      "inputs": [
+        {
+          "name": "_data",
+          "type": "tuple[]",
+          "internalType": "struct UserCallData[]",
+          "components": [
+            {
+              "name": "data",
+              "type": "bytes",
+              "internalType": "bytes"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
     }
 ]
