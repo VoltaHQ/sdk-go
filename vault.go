@@ -22,31 +22,41 @@ type VaultClient interface {
 }
 
 func NewVaultClient(chain Blockchain) (VaultClient, error) {
-	return newVaultClient(chain)
+	if !chain.IsValid() {
+		return nil, ErrInvalidBlockchain
+	}
+	return newVaultClient(chain.BundlerURL(), chain.ChainID())
+}
+
+func NewVaultClientFromBundlerUrl(url string) (*vaultClient, error) {
+	return newVaultClient(url, nil)
 }
 
 type vaultClient struct {
-	chain      Blockchain
+	chainId    big.Int
 	ethClient  *ethclient.Client
 	entryPoint *entrypoint.EntryPoint
 }
 
-func newVaultClient(chain Blockchain) (*vaultClient, error) {
-	if !chain.IsValid() {
-		return nil, ErrInvalidBlockchain
-	}
-
-	ethClient, err := ethclient.DialContext(context.Background(), chain.BundlerURL())
+func newVaultClient(bundlerUrl string, chainId *big.Int) (*vaultClient, error) {
+	ethClient, err := ethclient.DialContext(context.Background(), bundlerUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial node: %w", err)
 	}
+	if chainId == nil {
+		chainId, err = ethClient.ChainID(context.Background())
+		if err != nil {
+			return nil, ErrInvalidBlockchain
+		}
+	}
+
 	entryPoint, err := entrypoint.NewEntryPoint(defaultEVMEntryPointAddress, ethClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to instantiate entrypoint: %w", err)
 	}
 
 	return &vaultClient{
-		chain:      chain,
+		chainId:    *chainId,
 		ethClient:  ethClient,
 		entryPoint: entryPoint,
 	}, nil
@@ -60,7 +70,7 @@ func (c vaultClient) BuildExecuteUserOp(vault common.Address, call Call) (*UserO
 
 	userOp := newUserOp(vault, big.NewInt(0))
 	userOp.CallData = callData
-	userOp.Blockchain = c.chain
+	userOp.ChainID = c.chainId
 	userOp.EntryPointAddress = defaultEVMEntryPointAddress
 
 	return userOp, nil
@@ -86,7 +96,7 @@ func (c vaultClient) BuildExecuteBatchUserOp(sender common.Address, calls []Call
 
 	userOp := newUserOp(sender, big.NewInt(0))
 	userOp.CallData = callData
-	userOp.Blockchain = c.chain
+	userOp.ChainID = c.chainId
 	userOp.EntryPointAddress = defaultEVMEntryPointAddress
 
 	return userOp, nil
@@ -95,7 +105,7 @@ func (c vaultClient) BuildExecuteBatchUserOp(sender common.Address, calls []Call
 func (c vaultClient) BuildCustomUserOp(vault common.Address, callData []byte) (*UserOperation, error) {
 	userOp := newUserOp(vault, big.NewInt(0))
 	userOp.CallData = callData
-	userOp.Blockchain = c.chain
+	userOp.ChainID = c.chainId
 	userOp.EntryPointAddress = defaultEVMEntryPointAddress
 
 	return userOp, nil
