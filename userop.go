@@ -50,7 +50,7 @@ type UserOperation struct {
 	Signature            []byte
 	// These fields are not serialized in the UserOp, but are used to generate the UserOpHash.
 	EntryPointAddress common.Address
-	Blockchain        Blockchain
+	ChainID           big.Int
 }
 
 func newUserOp(sender common.Address, nonce *big.Int) *UserOperation {
@@ -165,7 +165,7 @@ func (op *UserOperation) GetOpHash() (common.Hash, error) {
 	return crypto.Keccak256Hash(
 		crypto.Keccak256(packed),
 		common.LeftPadBytes(op.EntryPointAddress.Bytes(), 32),
-		common.LeftPadBytes(op.Blockchain.ChainID().Bytes(), 32),
+		common.LeftPadBytes(op.ChainID.Bytes(), 32),
 	), nil
 }
 
