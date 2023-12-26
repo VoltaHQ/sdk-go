@@ -53,11 +53,10 @@ type UserOperation struct {
 	ChainID           big.Int
 }
 
-func newUserOp(sender common.Address, nonce *big.Int, initCode []byte) *UserOperation {
+func newUserOp(sender common.Address, nonce *big.Int) *UserOperation {
 	return &UserOperation{
 		Sender:               sender,
 		Nonce:                nonce,
-		InitCode:             initCode,
 		CallGasLimit:         big.NewInt(0),
 		VerificationGasLimit: big.NewInt(0),
 		PreVerificationGas:   big.NewInt(0),

@@ -13,12 +13,12 @@ import (
 )
 
 type VaultClient interface {
-	BuildExecuteUserOp(vault common.Address, call Call, initCode []byte) (*UserOperation, error)
-	BuildExecuteUserOpFromTx(vault common.Address, tx *types.Transaction, initCode []byte) (*UserOperation, error)
-	BuildExecuteBatchUserOp(vault common.Address, calls []Call, initCode []byte) (*UserOperation, error)
-	BuildEnableBatchUserOp(vault common.Address, enableCalls []UserCallData, initCode []byte) (*UserOperation, error)
-	BuildDisableBatchUserOp(vault common.Address, disableCalls []UserCallData, initCode []byte) (*UserOperation, error)
-	BuildCustomUserOp(vault common.Address, callData []byte, initCode []byte) (*UserOperation, error)
+	BuildExecuteUserOp(vault common.Address, call Call) (*UserOperation, error)
+	BuildExecuteUserOpFromTx(vault common.Address, tx *types.Transaction) (*UserOperation, error)
+	BuildExecuteBatchUserOp(vault common.Address, calls []Call) (*UserOperation, error)
+	BuildEnableBatchUserOp(vault common.Address, enableCalls []UserCallData) (*UserOperation, error)
+	BuildDisableBatchUserOp(vault common.Address, disableCalls []UserCallData) (*UserOperation, error)
+	BuildCustomUserOp(vault common.Address, callData []byte) (*UserOperation, error)
 	NextNonce(sender common.Address) (*big.Int, error)
 	SuggestUserOpGasPrice(ctx context.Context, userOp *UserOperation) error
 }
@@ -64,7 +64,7 @@ func newVaultClient(bundlerUrl string, chainId *big.Int) (*vaultClient, error) {
 	}, nil
 }
 
-func (c vaultClient) BuildExecuteUserOp(vault common.Address, call Call, initCode []byte) (*UserOperation, error) {
+func (c vaultClient) BuildExecuteUserOp(vault common.Address, call Call) (*UserOperation, error) {
 	callData, err := accountABI.Pack("execute", call.Target, call.Value, call.Data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack execute call: %w", err)
@@ -75,7 +75,7 @@ func (c vaultClient) BuildExecuteUserOp(vault common.Address, call Call, initCod
 		return nil, fmt.Errorf("failed to get next nonce: %w", err)
 	}
 
-	userOp := newUserOp(vault, nonce, initCode)
+	userOp := newUserOp(vault, nonce)
 	userOp.CallData = callData
 	userOp.ChainID = c.chainId
 	userOp.EntryPointAddress = defaultEVMEntryPointAddress
@@ -88,7 +88,7 @@ func (c vaultClient) BuildExecuteUserOp(vault common.Address, call Call, initCod
 	return userOp, nil
 }
 
-func (c vaultClient) BuildExecuteUserOpFromTx(vault common.Address, tx *types.Transaction, initCode []byte) (*UserOperation, error) {
+func (c vaultClient) BuildExecuteUserOpFromTx(vault common.Address, tx *types.Transaction) (*UserOperation, error) {
 	if tx.To() == nil {
 		return nil, errors.New("tx must have a recipient")
 	}
@@ -97,10 +97,10 @@ func (c vaultClient) BuildExecuteUserOpFromTx(vault common.Address, tx *types.Tr
 		Target: *tx.To(),
 		Value:  tx.Value(),
 		Data:   tx.Data(),
-	}, initCode)
+	})
 }
 
-func (c vaultClient) BuildExecuteBatchUserOp(sender common.Address, calls []Call, initCode []byte) (*UserOperation, error) {
+func (c vaultClient) BuildExecuteBatchUserOp(sender common.Address, calls []Call) (*UserOperation, error) {
 	callData, err := accountABI.Pack("executeBatch", calls)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack executeBatch call: %w", err)
@@ -110,7 +110,7 @@ func (c vaultClient) BuildExecuteBatchUserOp(sender common.Address, calls []Call
 	if err != nil {
 		return nil, fmt.Errorf("failed to get next nonce: %w", err)
 	}
-	userOp := newUserOp(sender, nonce, initCode)
+	userOp := newUserOp(sender, nonce)
 	userOp.CallData = callData
 	userOp.ChainID = c.chainId
 	userOp.EntryPointAddress = defaultEVMEntryPointAddress
@@ -123,7 +123,7 @@ func (c vaultClient) BuildExecuteBatchUserOp(sender common.Address, calls []Call
 	return userOp, nil
 }
 
-func (c vaultClient) BuildEnableBatchUserOp(sender common.Address, enableCalls []UserCallData, initCode []byte) (*UserOperation, error) {
+func (c vaultClient) BuildEnableBatchUserOp(sender common.Address, enableCalls []UserCallData) (*UserOperation, error) {
 	callData, err := accountABI.Pack("enableBatch", enableCalls)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack enableBatch call: %w", err)
@@ -133,7 +133,7 @@ func (c vaultClient) BuildEnableBatchUserOp(sender common.Address, enableCalls [
 	if err != nil {
 		return nil, fmt.Errorf("failed to get next nonce: %w", err)
 	}
-	userOp := newUserOp(sender, nonce, initCode)
+	userOp := newUserOp(sender, nonce)
 	userOp.CallData = callData
 	userOp.Blockchain = c.chain
 	userOp.EntryPointAddress = defaultEVMEntryPointAddress
@@ -146,7 +146,7 @@ func (c vaultClient) BuildEnableBatchUserOp(sender common.Address, enableCalls [
 	return userOp, nil
 }
 
-func (c vaultClient) BuildDisableBatchUserOp(sender common.Address, disableCalls []UserCallData, initCode []byte) (*UserOperation, error) {
+func (c vaultClient) BuildDisableBatchUserOp(sender common.Address, disableCalls []UserCallData) (*UserOperation, error) {
 	callData, err := accountABI.Pack("disableBatch", disableCalls)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack disableBatch call: %w", err)
@@ -156,7 +156,7 @@ func (c vaultClient) BuildDisableBatchUserOp(sender common.Address, disableCalls
 	if err != nil {
 		return nil, fmt.Errorf("failed to get next nonce: %w", err)
 	}
-	userOp := newUserOp(sender, nonce, initCode)
+	userOp := newUserOp(sender, nonce)
 	userOp.CallData = callData
 	userOp.Blockchain = c.chain
 	userOp.EntryPointAddress = defaultEVMEntryPointAddress
@@ -169,12 +169,12 @@ func (c vaultClient) BuildDisableBatchUserOp(sender common.Address, disableCalls
 	return userOp, nil
 }
 
-func (c vaultClient) BuildCustomUserOp(vault common.Address, callData []byte, initCode []byte) (*UserOperation, error) {
+func (c vaultClient) BuildCustomUserOp(vault common.Address, callData []byte) (*UserOperation, error) {
 	nonce, err := c.NextNonce(vault)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get next nonce: %w", err)
 	}
-	userOp := newUserOp(vault, nonce, initCode)
+	userOp := newUserOp(vault, nonce)
 	userOp.CallData = callData
 	userOp.ChainID = c.chainId
 	userOp.EntryPointAddress = defaultEVMEntryPointAddress
