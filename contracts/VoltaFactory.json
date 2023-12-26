@@ -1,0 +1,90 @@
+[
+  {
+    "inputs": [
+    {
+      "internalType": "address",
+      "name": "accountImplementation",
+      "type": "address"
+    },
+    {
+      "internalType": "address",
+      "name": "sessionKeyValidatorImplementation",
+      "type": "address"
+    },
+    {
+      "internalType": "address",
+      "name": "executorImplementation",
+      "type": "address"
+    },
+    {
+      "internalType": "address[]",
+      "name": "owners",
+      "type": "address[]"
+    },
+    {
+      "internalType": "uint256",
+      "name": "minNumSigners",
+      "type": "uint256"
+    },
+    {
+      "internalType": "uint256",
+      "name": "salt",
+      "type": "uint256"
+    }
+  ],
+    "name": "getAddress",
+    "outputs": [
+    {
+      "internalType": "address",
+      "name": "",
+      "type": "address"
+    }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "accountImplementation",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "sessionKeyValidatorImplementation",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "executorImplementation",
+        "type": "address"
+      },
+      {
+        "internalType": "address[]",
+        "name": "owners",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "minNumSigners",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "salt",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "createAccount",
+    "outputs": [
+      {
+        "internalType": "contract VoltaAccount",
+        "name": "ret",
+        "type": "address"
+      }
+    ]
+  }
+]

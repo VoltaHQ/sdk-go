@@ -7,6 +7,13 @@ import (
 
 type Blockchain string
 
+type ChainConfig struct {
+	FactoryAddress                    common.Address
+	AccountImplementation             common.Address
+	SessionKeyValidatorImplementation common.Address
+	ExecutorImplementation            common.Address
+}
+
 const (
 	BlockchainAvalancheMainnet Blockchain = "avalanche-mainnet"
 	BlockchainPolygonMumbai    Blockchain = "polygon-mumbai"
