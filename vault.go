@@ -20,6 +20,7 @@ type VaultClient interface {
 	NextNonce(sender common.Address) (*big.Int, error)
 	SuggestGasTipCap(ctx context.Context) (*big.Int, error)
 	BlockByNumber(ctx context.Context, number *big.Int) (*types.Block, error)
+	HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error)
 }
 
 func NewVaultClient(chain Blockchain) (*vaultClient, error) {
@@ -114,6 +115,10 @@ func (c vaultClient) SuggestGasTipCap(ctx context.Context) (*big.Int, error) {
 
 func (c vaultClient) BlockByNumber(ctx context.Context, number *big.Int) (*types.Block, error) {
 	return c.ethClient.BlockByNumber(ctx, number)
+}
+
+func (c vaultClient) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
+	return c.ethClient.HeaderByNumber(ctx, number)
 }
 
 func (c vaultClient) getUserOp(sender common.Address, callData []byte) (*UserOperation, error) {
