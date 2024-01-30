@@ -21,9 +21,10 @@ import (
 )
 
 var (
-	uniswapV3Factory = common.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
-	baseToken        = common.HexToAddress("0x4200000000000000000000000000000000000006")
-	quoteToken       = common.HexToAddress("0x4200000000000000000000000000000000000042")
+	uniswapV3Factory  = common.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
+	swapRouterAddress = common.HexToAddress("0xE592427A0AEce92De3Edee1F18E0157C05861564")
+	fromToken         = common.HexToAddress("0x4200000000000000000000000000000000000006")
+	toToken           = common.HexToAddress("0x4200000000000000000000000000000000000042")
 	// a pair is structured as BASE-QUOTE.  The above defaults to ETH-OP
 
 	ethClient *ethclient.Client
@@ -45,30 +46,32 @@ func GetPoolAddress(token0, token1 common.Address, fee *big.Int) (common.Address
 	return poolAddr, nil
 }
 
-func ConstructV3Pool(token0, token1 *coreEntities.Token, poolFee uint64) (*entities.Pool, error) {
+func ConstructV3Pool(token0, token1 *coreEntities.Token, poolFee uint64) (*entities.Pool, common.Address, error) {
 	poolAddress, err := GetPoolAddress(token0.Address, token1.Address, new(big.Int).SetUint64(poolFee))
 	if err != nil {
-		return nil, fmt.Errorf("cannot get pool address: %v", err)
+		return nil, poolAddress, fmt.Errorf("cannot get pool address: %v", err)
 	}
+
+	color.Green("Pool Address: %s", poolAddress)
 
 	contractPool, err := contract.NewUniswapv3Pool(poolAddress, ethClient)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get pool contract: %v", err)
+		return nil, poolAddress, fmt.Errorf("cannot get pool contract: %v", err)
 	}
 
 	liquidity, err := contractPool.Liquidity(nil)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get pool liquidity: %v", err)
+		return nil, poolAddress, fmt.Errorf("cannot get pool liquidity: %v", err)
 	}
 
 	slot0, err := contractPool.Slot0(nil)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get pool slot0: %v", err)
+		return nil, poolAddress, fmt.Errorf("cannot get pool slot0: %v", err)
 	}
 
 	poolTick, err := contractPool.Ticks(nil, big.NewInt(0))
 	if err != nil {
-		return nil, fmt.Errorf("cannot get pool tick: %v", err)
+		return nil, poolAddress, fmt.Errorf("cannot get pool tick: %v", err)
 	}
 
 	feeAmount := constants.FeeAmount(poolFee)
@@ -92,12 +95,16 @@ func ConstructV3Pool(token0, token1 *coreEntities.Token, poolFee uint64) (*entit
 	p, err := entities.NewTickListDataProvider(ticks, constants.TickSpacings[feeAmount])
 	// err = "tick net delta must be zero"
 	if err != nil {
-		return nil, fmt.Errorf("cannot create tick data provider: %v", err)
+		return nil, poolAddress, fmt.Errorf("cannot create tick data provider: %v", err)
 	}
 
-	return entities.NewPool(token0, token1, constants.FeeAmount(poolFee),
+	p2, err := entities.NewPool(token0, token1, constants.FeeAmount(poolFee),
 		slot0.SqrtPriceX96, liquidity, int(slot0.Tick.Int64()), p)
+
+	return p2, poolAddress, err
+
 }
+
 func main() {
 	// 0.0001 * 1e18
 	swapValue := big.NewInt(100000000000000)
@@ -112,10 +119,10 @@ func main() {
 	ethClient, err = ethclient.DialContext(context.Background(), "https://api-bundler.dev.nukey.fi/"+targetChain)
 	bundlerClient, err := voltasdk.NewBundlerClient(voltasdk.Blockchain(targetChain))
 
-	op := coreEntities.NewToken(80001, quoteToken, 18, "OP", "OP")
-	weth := coreEntities.NewToken(80001, baseToken, 18, "WETH", "Wrapped ETH")
+	op := coreEntities.NewToken(10, toToken, 18, "OP", "OP")
+	weth := coreEntities.NewToken(10, fromToken, 18, "WETH", "Wrapped ETH")
 
-	pool, err := ConstructV3Pool(op, weth, uint64(constants.FeeMedium))
+	pool, _, err := ConstructV3Pool(op, weth, uint64(constants.FeeMedium))
 	if err != nil {
 		color.Red("Could not create v3 pool: %v", err)
 		return
@@ -153,7 +160,7 @@ func main() {
 	}
 
 	userOp, err := voltaClient.BuildExecuteUserOp(myAddress, voltasdk.Call{
-		Target: common.HexToAddress("0xec8b0f7ffe3ae75d7ffab09429e3675bb63503e4"), // universal router on optimism
+		Target: swapRouterAddress, // swap router on optimism
 		Value:  params.Value,
 		Data:   params.Calldata,
 	})
@@ -172,9 +179,9 @@ func main() {
 	if err != nil {
 		color.Red("Could not estimate gas for user op: %v", err)
 	}
-	userOp.PreVerificationGas = preVerificationGas
+	userOp.PreVerificationGas = utils.IncreaseByPercent(preVerificationGas, 10)
 	userOp.VerificationGasLimit = verificationGas
 	userOp.CallGasLimit = callGasLimit
 
-	utils.PrintUserOp(userOp)
+	utils.PresentUserOpToUserAndSend(context.Background(), &bundlerClient, userOp)
 }
