@@ -27,24 +27,31 @@
         {
           "components": [
             {
-              "internalType": "address",
-              "name": "target",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "value",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes",
-              "name": "data",
-              "type": "bytes"
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "target",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "value",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct Call[]",
+              "name": "calls",
+              "type": "tuple[]"
             }
           ],
-          "internalType": "struct Call[]",
-          "name": "calls",
-          "type": "tuple[]"
+          "internalType": "struct ExecuteBatchCall",
+          "name": "batchCall",
+          "type": "tuple"
         }
       ],
       "name": "executeBatch",
