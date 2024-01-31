@@ -36,9 +36,14 @@ type Call struct {
 	Data   []byte
 }
 
+// ExecuteBatchCall is an auto generated low-level Go binding around an user-defined struct.
+type ExecuteBatchCall struct {
+	Calls []Call
+}
+
 // AccountMetaData contains all meta data concerning the Account contract.
 var AccountMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"dest\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"execute\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"structCall[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"name\":\"executeBatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"dest\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"execute\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"structCall[]\",\"name\":\"calls\",\"type\":\"tuple[]\"}],\"internalType\":\"structExecuteBatchCall\",\"name\":\"batchCall\",\"type\":\"tuple\"}],\"name\":\"executeBatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // AccountABI is the input ABI used to generate the binding from.
@@ -208,23 +213,23 @@ func (_Account *AccountTransactorSession) Execute(dest common.Address, value *bi
 	return _Account.Contract.Execute(&_Account.TransactOpts, dest, value, data)
 }
 
-// ExecuteBatch is a paid mutator transaction binding the contract method 0x34fcd5be.
+// ExecuteBatch is a paid mutator transaction binding the contract method 0x12c850df.
 //
-// Solidity: function executeBatch((address,uint256,bytes)[] calls) returns()
-func (_Account *AccountTransactor) ExecuteBatch(opts *bind.TransactOpts, calls []Call) (*types.Transaction, error) {
-	return _Account.contract.Transact(opts, "executeBatch", calls)
+// Solidity: function executeBatch(((address,uint256,bytes)[]) batchCall) returns()
+func (_Account *AccountTransactor) ExecuteBatch(opts *bind.TransactOpts, batchCall ExecuteBatchCall) (*types.Transaction, error) {
+	return _Account.contract.Transact(opts, "executeBatch", batchCall)
 }
 
-// ExecuteBatch is a paid mutator transaction binding the contract method 0x34fcd5be.
+// ExecuteBatch is a paid mutator transaction binding the contract method 0x12c850df.
 //
-// Solidity: function executeBatch((address,uint256,bytes)[] calls) returns()
-func (_Account *AccountSession) ExecuteBatch(calls []Call) (*types.Transaction, error) {
-	return _Account.Contract.ExecuteBatch(&_Account.TransactOpts, calls)
+// Solidity: function executeBatch(((address,uint256,bytes)[]) batchCall) returns()
+func (_Account *AccountSession) ExecuteBatch(batchCall ExecuteBatchCall) (*types.Transaction, error) {
+	return _Account.Contract.ExecuteBatch(&_Account.TransactOpts, batchCall)
 }
 
-// ExecuteBatch is a paid mutator transaction binding the contract method 0x34fcd5be.
+// ExecuteBatch is a paid mutator transaction binding the contract method 0x12c850df.
 //
-// Solidity: function executeBatch((address,uint256,bytes)[] calls) returns()
-func (_Account *AccountTransactorSession) ExecuteBatch(calls []Call) (*types.Transaction, error) {
-	return _Account.Contract.ExecuteBatch(&_Account.TransactOpts, calls)
+// Solidity: function executeBatch(((address,uint256,bytes)[]) batchCall) returns()
+func (_Account *AccountTransactorSession) ExecuteBatch(batchCall ExecuteBatchCall) (*types.Transaction, error) {
+	return _Account.Contract.ExecuteBatch(&_Account.TransactOpts, batchCall)
 }
