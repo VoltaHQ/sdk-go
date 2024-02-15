@@ -111,7 +111,7 @@ func (c vaultClient) NextNonce(sender common.Address) (*big.Int, error) {
 }
 
 func (c vaultClient) SuggestGasTipCap(ctx context.Context) (*big.Int, error) {
-	return c.ethClient.SuggestGasPrice(ctx)
+	return c.ethClient.SuggestGasTipCap(ctx)
 }
 
 func (c vaultClient) BlockByNumber(ctx context.Context, number *big.Int) (*types.Block, error) {
