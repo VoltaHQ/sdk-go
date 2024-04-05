@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"strings"
 
-	voltasdk "github.com/NuKeyHQ/sdk-go"
-	"github.com/NuKeyHQ/sdk-go/examples/utils"
+	voltasdk "github.com/VoltaHQ/sdk-go"
+	"github.com/VoltaHQ/sdk-go/examples/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/fatih/color"

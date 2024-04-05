@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
-	voltasdk "github.com/NuKeyHQ/sdk-go"
+	voltasdk "github.com/VoltaHQ/sdk-go"
 )
 
 func SuggestUserOpFeePerGas(ctx context.Context, vaultClient voltasdk.VaultClient) (maxFeePerGas, maxPriorityFeePerGas *big.Int, err error) {

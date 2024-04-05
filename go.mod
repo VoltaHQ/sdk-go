@@ -1,4 +1,4 @@
-module github.com/NuKeyHQ/sdk-go
+module github.com/VoltaHQ/sdk-go
 
 go 1.21.0
 

@@ -2,10 +2,10 @@ module example-uniswap
 
 go 1.21.5
 
-replace github.com/NuKeyHQ/sdk-go => ../../
+replace github.com/VoltaHQ/sdk-go => ../../
 
 require (
-	github.com/NuKeyHQ/sdk-go v0.0.0-20240122084510-147ad7fd395e
+	github.com/VoltaHQ/sdk-go v0.0.0-20240122084510-147ad7fd395e
 	github.com/daoleno/uniswap-sdk-core v0.1.7
 	github.com/daoleno/uniswapv3-sdk v0.4.0
 	github.com/ethereum/go-ethereum v1.13.11
