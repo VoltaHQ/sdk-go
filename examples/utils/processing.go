@@ -3,7 +3,7 @@ package utils
 import (
 	"context"
 
-	voltasdk "github.com/NuKeyHQ/sdk-go"
+	voltasdk "github.com/VoltaHQ/sdk-go"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/fatih/color"
 )

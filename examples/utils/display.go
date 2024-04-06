@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 
-	voltasdk "github.com/NuKeyHQ/sdk-go"
+	voltasdk "github.com/VoltaHQ/sdk-go"
 )
 
 func PrintUserOp(op *voltasdk.UserOperation) {
