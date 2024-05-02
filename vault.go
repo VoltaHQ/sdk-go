@@ -28,11 +28,15 @@ func NewVaultClient(chain Blockchain) (*vaultClient, error) {
 	if !chain.IsValid() {
 		return nil, ErrInvalidBlockchain
 	}
-	return newVaultClient(chain.BundlerURL(), chain.ChainID())
+	return newVaultClient(chain.BundlerURL(), chain.ChainID(), defaultEVMEntryPointAddress)
 }
 
 func NewVaultClientFromBundlerUrl(url string) (*vaultClient, error) {
-	return newVaultClient(url, nil)
+	return NewVaultClientWithEntryPoint(url, defaultEVMEntryPointAddress)
+}
+
+func NewVaultClientWithEntryPoint(bundlerUrl string, entryPoint common.Address) (*vaultClient, error) {
+	return newVaultClient(bundlerUrl, nil, entryPoint)
 }
 
 type vaultClient struct {
@@ -41,7 +45,7 @@ type vaultClient struct {
 	entryPoint *entrypoint.EntryPoint
 }
 
-func newVaultClient(bundlerUrl string, chainId *big.Int) (*vaultClient, error) {
+func newVaultClient(bundlerUrl string, chainId *big.Int, entryPoint common.Address) (*vaultClient, error) {
 	ethClient, err := ethclient.DialContext(context.Background(), bundlerUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial node: %w", err)
@@ -53,7 +57,7 @@ func newVaultClient(bundlerUrl string, chainId *big.Int) (*vaultClient, error) {
 		}
 	}
 
-	entryPoint, err := entrypoint.NewEntryPoint(defaultEVMEntryPointAddress, ethClient)
+	boundEntryPoint, err := entrypoint.NewEntryPoint(entryPoint, ethClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to instantiate entrypoint: %w", err)
 	}
@@ -61,7 +65,7 @@ func newVaultClient(bundlerUrl string, chainId *big.Int) (*vaultClient, error) {
 	return &vaultClient{
 		chainId:    *chainId,
 		ethClient:  ethClient,
-		entryPoint: entryPoint,
+		entryPoint: boundEntryPoint,
 	}, nil
 }
 
