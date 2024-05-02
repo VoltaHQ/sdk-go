@@ -40,9 +40,10 @@ func NewVaultClientWithEntryPoint(bundlerUrl string, entryPoint common.Address) 
 }
 
 type vaultClient struct {
-	chainId    big.Int
-	ethClient  *ethclient.Client
-	entryPoint *entrypoint.EntryPoint
+	chainId           big.Int
+	ethClient         *ethclient.Client
+	entryPoint        *entrypoint.EntryPoint
+	entryPointAddress common.Address
 }
 
 func newVaultClient(bundlerUrl string, chainId *big.Int, entryPoint common.Address) (*vaultClient, error) {
@@ -63,9 +64,10 @@ func newVaultClient(bundlerUrl string, chainId *big.Int, entryPoint common.Addre
 	}
 
 	return &vaultClient{
-		chainId:    *chainId,
-		ethClient:  ethClient,
-		entryPoint: boundEntryPoint,
+		chainId:           *chainId,
+		ethClient:         ethClient,
+		entryPoint:        boundEntryPoint,
+		entryPointAddress: entryPoint,
 	}, nil
 }
 
@@ -134,7 +136,7 @@ func (c vaultClient) getUserOp(sender common.Address, callData []byte) (*UserOpe
 
 	userOp := newUserOp(sender, nonce)
 	userOp.CallData = callData
-	userOp.EntryPointAddress = defaultEVMEntryPointAddress
+	userOp.EntryPointAddress = c.entryPointAddress
 	userOp.ChainID = c.chainId
 
 	return userOp, nil
