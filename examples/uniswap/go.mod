@@ -8,7 +8,7 @@ require (
 	github.com/VoltaHQ/sdk-go v0.0.0-20240122084510-147ad7fd395e
 	github.com/daoleno/uniswap-sdk-core v0.1.7
 	github.com/daoleno/uniswapv3-sdk v0.4.0
-	github.com/ethereum/go-ethereum v1.13.11
+	github.com/ethereum/go-ethereum v1.13.15
 	github.com/fatih/color v1.16.0
 )
 
