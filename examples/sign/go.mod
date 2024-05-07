@@ -3,7 +3,7 @@ module example-sign
 go 1.21.5
 
 require (
-	github.com/ethereum/go-ethereum v1.13.11
+	github.com/ethereum/go-ethereum v1.13.15
 	github.com/fatih/color v1.16.0
 )
 
