@@ -8,7 +8,7 @@ require (
 	github.com/VoltaHQ/sdk-go v0.0.0-20240122084510-147ad7fd395e
 	github.com/daoleno/uniswap-sdk-core v0.1.7
 	github.com/daoleno/uniswapv3-sdk v0.4.0
-	github.com/ethereum/go-ethereum v1.13.11
+	github.com/ethereum/go-ethereum v1.13.15
 	github.com/fatih/color v1.16.0
 )
 
@@ -42,13 +42,13 @@ require (
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
 	golang.org/x/mod v0.14.0 // indirect
-	golang.org/x/net v0.18.0 // indirect
+	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
-	golang.org/x/term v0.15.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/term v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.15.0 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
