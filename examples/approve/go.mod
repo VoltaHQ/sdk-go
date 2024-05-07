@@ -6,7 +6,7 @@ replace github.com/VoltaHQ/sdk-go => ../../
 
 require (
 	github.com/VoltaHQ/sdk-go v0.0.0-00010101000000-000000000000
-	github.com/ethereum/go-ethereum v1.13.11
+	github.com/ethereum/go-ethereum v1.13.15
 	github.com/fatih/color v1.16.0
 )
 
