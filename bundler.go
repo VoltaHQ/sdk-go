@@ -12,6 +12,7 @@ type BundlerClient interface {
 	SendUserOp(ctx context.Context, userOp *UserOperation) (userOpHash string, err error)
 	EstimateUserOpGas(ctx context.Context, userOperation *UserOperation) (preVerificationGas, verificationGas, callGasLimit *big.Int, err error)
 	GetUserOpReceipt(ctx context.Context, userOpHash string) (GetUserOpReceiptResponse, error)
+	GetUserOperationGasPrice(ctx context.Context) (UserOperationGasPrice, error)
 }
 
 func NewBundlerClient(chain Blockchain) (BundlerClient, error) {
@@ -72,6 +73,92 @@ func (b bundlerClient) EstimateUserOpGas(ctx context.Context, userOperation *Use
 	}
 
 	return result.PreVerificationGas, result.VerificationGas, result.CallGasLimit, nil
+}
+
+type rawUserOperationGasPrice struct {
+	Slow     rawGasPriceTier `json:"slow"`
+	Standard rawGasPriceTier `json:"standard"`
+	Fast     rawGasPriceTier `json:"fast"`
+}
+
+type rawGasPriceTier struct {
+	MaxFeePerGas         string `json:"maxFeePerGas"`
+	MaxPriorityFeePerGas string `json:"maxPriorityFeePerGas"`
+}
+
+// GasPriceTier contains the max fee and max priority fee per gas suggested by the bundler for a tier.
+type GasPriceTier struct {
+	MaxFeePerGas         *big.Int
+	MaxPriorityFeePerGas *big.Int
+}
+
+// UserOperationGasPrice contains the slow, standard and fast gas price tiers returned by the bundler.
+type UserOperationGasPrice struct {
+	Slow     GasPriceTier
+	Standard GasPriceTier
+	Fast     GasPriceTier
+}
+
+func (b bundlerClient) GetUserOperationGasPrice(ctx context.Context) (UserOperationGasPrice, error) {
+	response, err := b.doJSONRPCRequest(ctx, "pimlico_getUserOperationGasPrice", []any{})
+	if err != nil {
+		return UserOperationGasPrice{}, err
+	}
+
+	var rawResult rawUserOperationGasPrice
+	if err := json.Unmarshal(response.Result, &rawResult); err != nil {
+		return UserOperationGasPrice{}, err
+	}
+
+	convertTier := func(rawTier rawGasPriceTier, label string) (GasPriceTier, error) {
+		if rawTier.MaxFeePerGas == "" || rawTier.MaxPriorityFeePerGas == "" {
+			return GasPriceTier{}, fmt.Errorf("bundler gas price response missing %s tier", label)
+		}
+
+		maxFeePerGas, err := parseHexToBigInt(rawTier.MaxFeePerGas)
+		if err != nil {
+			return GasPriceTier{}, fmt.Errorf("failed to parse %s maxFeePerGas: %w", label, err)
+		}
+
+		maxPriorityFeePerGas, err := parseHexToBigInt(rawTier.MaxPriorityFeePerGas)
+		if err != nil {
+			return GasPriceTier{}, fmt.Errorf("failed to parse %s maxPriorityFeePerGas: %w", label, err)
+		}
+
+		return GasPriceTier{
+			MaxFeePerGas:         maxFeePerGas,
+			MaxPriorityFeePerGas: maxPriorityFeePerGas,
+		}, nil
+	}
+
+	slow, err := convertTier(rawResult.Slow, "slow")
+	if err != nil {
+		return UserOperationGasPrice{}, err
+	}
+
+	standard, err := convertTier(rawResult.Standard, "standard")
+	if err != nil {
+		return UserOperationGasPrice{}, err
+	}
+
+	fast, err := convertTier(rawResult.Fast, "fast")
+	if err != nil {
+		return UserOperationGasPrice{}, err
+	}
+
+	return UserOperationGasPrice{
+		Slow:     slow,
+		Standard: standard,
+		Fast:     fast,
+	}, nil
+}
+
+func parseHexToBigInt(value string) (*big.Int, error) {
+	parsed, ok := new(big.Int).SetString(value, 0)
+	if !ok {
+		return nil, fmt.Errorf("invalid hex value: %s", value)
+	}
+	return parsed, nil
 }
 
 func (b bundlerClient) GetUserOpReceipt(ctx context.Context, userOpHash string) (out GetUserOpReceiptResponse, err error) {
